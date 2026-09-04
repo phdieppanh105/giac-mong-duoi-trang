@@ -36,5 +36,23 @@ service cloud.firestore {
       allow create, update: if isSignedIn() && request.auth.uid == userId;
       allow delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
     }
+
+    // Character likes: mỗi tài khoản chỉ có 1 lượt tim cho mỗi character
+    match /characters/{characterId}/likes/{userId} {
+      // Cho phép đọc để hiển thị tổng số tim
+      allow read: if true;
+
+      // Chỉ tài khoản đang đăng nhập mới được tim
+      // Và userId của document phải đúng bằng UID của chính tài khoản đó
+      allow create: if isSignedIn() &&
+                    request.auth.uid == userId;
+
+      // Chỉ chính người đã tim mới được bỏ tim
+      allow delete: if isSignedIn() &&
+                    request.auth.uid == userId;
+
+      // Không cho sửa document lượt tim
+      allow update: if false;
+    }
   }
 }
