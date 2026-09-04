@@ -8,18 +8,7 @@ import {
   ArrowUpRight,
   BookOpen,
   MessageCircle,
-  Heart,
 } from 'lucide-react';
-import {
-  collection,
-  deleteDoc,
-  doc,
-  onSnapshot,
-  serverTimestamp,
-  setDoc,
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { useAuth } from '../context/AuthContext';
 
 interface CharacterCardProps {
   character: Character;
@@ -36,79 +25,6 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   onDelete,
   isAdmin,
 }) => {
-  const { user, login } = useAuth();
-
-  const [likesCount, setLikesCount] = React.useState(0);
-  const [isLiked, setIsLiked] = React.useState(false);
-  const [isLiking, setIsLiking] = React.useState(false);
-
-  React.useEffect(() => {
-    const likesRef = collection(
-      db,
-      'characters',
-      character.id,
-      'likes'
-    );
-
-    const unsubscribe = onSnapshot(
-      likesRef,
-      (snapshot) => {
-        setLikesCount(snapshot.size);
-
-        setIsLiked(
-          user
-            ? snapshot.docs.some(
-                (likeDoc) => likeDoc.id === user.uid
-              )
-            : false
-        );
-      },
-      (error) => {
-        console.error('Likes snapshot error:', error);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [character.id, user]);
-
-  const handleLike = async (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    event.stopPropagation();
-
-    if (!user) {
-      await login();
-      return;
-    }
-
-    if (isLiking) return;
-
-    setIsLiking(true);
-
-    const likeRef = doc(
-      db,
-      'characters',
-      character.id,
-      'likes',
-      user.uid
-    );
-
-    try {
-      if (isLiked) {
-        await deleteDoc(likeRef);
-      } else {
-        await setDoc(likeRef, {
-          userId: user.uid,
-          createdAt: serverTimestamp(),
-        });
-      }
-    } catch (error) {
-      console.error('Like error:', error);
-    } finally {
-      setIsLiking(false);
-    }
-  };
-
   const hashtagsList = character.hashtags
     ? character.hashtags
         .split(',')
@@ -194,52 +110,6 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             group-hover:opacity-60
           "
         />
-
-        {/* =========================
-            LIKE
-        ========================== */}
-        <button
-          type="button"
-          onClick={handleLike}
-          disabled={isLiking}
-          aria-label={
-            isLiked
-              ? 'Bỏ thích nhân vật'
-              : 'Thích nhân vật'
-          }
-          className="
-            absolute bottom-3 left-3 z-10
-            flex items-center gap-1.5
-            rounded-full
-            border border-white/70
-            bg-[#FFFDF7]/95
-            px-3 py-1.5
-            text-[#31465A]
-            shadow-sm
-            backdrop-blur-sm
-            transition-all duration-200
-            hover:bg-[#D9F0FF]
-            hover:scale-[1.03]
-            disabled:cursor-not-allowed
-            disabled:opacity-60
-          "
-        >
-          <Heart
-            className={`
-              h-3.5 w-3.5
-              transition-all duration-200
-              ${
-                isLiked
-                  ? 'fill-[#31465A] text-[#31465A] scale-110'
-                  : 'text-[#31465A]'
-              }
-            `}
-          />
-
-          <span className="text-[11px] font-bold tracking-wide">
-            {likesCount}
-          </span>
-        </button>
 
         {/* =========================
             EXPLORE
