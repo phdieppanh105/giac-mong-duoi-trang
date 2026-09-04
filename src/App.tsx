@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, doc, deleteDoc } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from './lib/firebase';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Character } from './types';
@@ -45,19 +45,28 @@ function MainApp() {
       q,
       (snapshot) => {
         const list: Character[] = [];
+
         snapshot.forEach((docSnap) => {
           list.push({ id: docSnap.id, ...docSnap.data() } as Character);
         });
+
         // Sort newest first
-        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        list.sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() -
+            new Date(a.createdAt).getTime()
+        );
+
         setCharacters(list);
         setLoading(false);
 
         // Check if there is a character in URL query params on initial load
         const urlParams = new URLSearchParams(window.location.search);
         const charIdFromUrl = urlParams.get('character');
+
         if (charIdFromUrl) {
           const found = list.find((c) => c.id === charIdFromUrl);
+
           if (found) {
             setSelectedCharacter(found);
             document.title = `${found.name} | Giấc Mộng Dưới Trăng`;
@@ -76,8 +85,10 @@ function MainApp() {
   // Update URL and Title when selected character changes
   const handleSelectCharacter = (character: Character) => {
     if (soundEnabled) playDreamyChime('open');
+
     setSelectedCharacter(character);
     document.title = `${character.name} | Giấc Mộng Dưới Trăng`;
+
     const url = new URL(window.location.href);
     url.searchParams.set('character', character.id);
     window.history.pushState({}, '', url.toString());
@@ -85,8 +96,10 @@ function MainApp() {
 
   const handleCloseCharacterDetail = () => {
     if (soundEnabled) playDreamyChime('click');
+
     setSelectedCharacter(null);
     document.title = 'GIẤC MỘNG DƯỚI TRĂNG';
+
     const url = new URL(window.location.href);
     url.searchParams.delete('character');
     window.history.pushState({}, '', url.toString());
@@ -113,19 +126,28 @@ function MainApp() {
   // Confirm Delete Action
   const handleConfirmDelete = async () => {
     if (!characterToDelete) return;
+
     setDeleting(true);
+
     try {
       if (soundEnabled) playDreamyChime('click');
+
       await deleteDoc(doc(db, 'characters', characterToDelete.id));
 
       if (selectedCharacter?.id === characterToDelete.id) {
         handleCloseCharacterDetail();
       }
+
       setIsDeleteModalOpen(false);
       setCharacterToDelete(null);
     } catch (error) {
       console.error('Error deleting character:', error);
-      handleFirestoreError(error, OperationType.DELETE, `characters/${characterToDelete.id}`);
+
+      handleFirestoreError(
+        error,
+        OperationType.DELETE,
+        `characters/${characterToDelete.id}`
+      );
     } finally {
       setDeleting(false);
     }
@@ -134,19 +156,24 @@ function MainApp() {
   // Extract all distinct hashtags
   const availableTags = useMemo(() => {
     const tagsSet = new Set<string>();
+
     characters.forEach((char) => {
       if (char.hashtags) {
         char.hashtags.split(',').forEach((t) => {
           const cleaned = t.trim().replace(/^#/, '');
-          if (cleaned) tagsSet.add(cleaned);
+
+          if (cleaned) {
+            tagsSet.add(cleaned);
+          }
         });
       }
     });
+
     return Array.from(tagsSet);
   }, [characters]);
 
   return (
-    <div className="min-h-screen flex flex-col relative bg-gradient-to-b from-[#e0f4ff] via-[#fcf3ff] to-[#fffef0] text-[#5d6d7e] font-sans selection:bg-[#fce4ec] selection:text-[#880e4f]">
+    <div className="min-h-screen flex flex-col relative bg-[#FFFDF7] text-[#31465A] font-sans selection:bg-[#D9F0FF] selection:text-[#31465A]">
       {/* Dreamy ambient background with moonlight glow & stars */}
       <DreamyBackground />
 
@@ -161,16 +188,23 @@ function MainApp() {
 
       {/* Admin Floating Banner Bar if Admin */}
       {isAdmin && (
-        <div className="w-full bg-white/60 backdrop-blur-sm border-b border-[#e1f5fe] py-2.5 px-4 z-10">
+        <div className="w-full bg-[#D9F0FF]/70 backdrop-blur-sm border-b border-[#89B9E6]/30 py-2.5 px-4 z-10">
           <div className="max-w-6xl mx-auto flex items-center justify-between text-xs flex-wrap gap-2">
-            <div className="flex items-center gap-2 text-[#4a5568] font-semibold">
-              <Shield className="w-3.5 h-3.5 text-[#fb8c00]" />
-              <span>🌙 Đang đăng nhập: <strong className="text-[#880e4f]">Quản Trị Viên (Moon)</strong></span>
+            <div className="flex items-center gap-2 text-[#31465A] font-semibold">
+              <Shield className="w-3.5 h-3.5 text-[#89B9E6]" />
+
+              <span>
+                ☾ Đang đăng nhập:{' '}
+                <strong className="text-[#31465A]">
+                  Quản Trị Viên (Moon)
+                </strong>
+              </span>
             </div>
+
             <div className="flex items-center gap-2">
               <button
                 onClick={handleOpenAddCharacter}
-                className="px-3.5 py-1.5 rounded-full bg-[#fce4ec] hover:bg-[#f8bbd0] text-[#880e4f] font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                className="px-3.5 py-1.5 rounded-full bg-[#C7DFA3] hover:bg-[#b7d18d] text-[#31465A] font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Thêm Nhân Vật Mới</span>
@@ -208,13 +242,14 @@ function MainApp() {
         />
       </main>
 
-      {/* Natural Tones Footer */}
-      <footer className="h-16 flex items-center justify-between px-6 sm:px-12 z-10 border-t border-[#e1f5fe] bg-white/40 backdrop-blur-md">
-        <div className="text-xs text-[#b0bec5] tracking-widest uppercase font-medium">
+      {/* Blue Matcha Footer */}
+      <footer className="h-16 flex items-center justify-between px-6 sm:px-12 z-10 border-t border-[#89B9E6]/25 bg-[#D9F0FF]/45 backdrop-blur-md">
+        <div className="text-xs text-[#31465A]/55 tracking-widest uppercase font-medium">
           © 2024 GIẤC MỘNG DƯỚI TRĂNG
         </div>
+
         <div className="flex items-center gap-4">
-          <div 
+          <div
             onClick={() => {
               if (isAdmin) {
                 setIsAdminZoneOpen(true);
@@ -224,8 +259,9 @@ function MainApp() {
             }}
             className="group cursor-pointer flex items-center gap-2"
           >
-            <span className="w-2 h-2 bg-[#ffe0b2] rounded-full group-hover:bg-[#ffb74d] transition-colors" />
-            <span className="text-xs font-semibold text-[#b0bec5] uppercase group-hover:text-[#4a5568] transition-colors tracking-widest">
+            <span className="w-2 h-2 bg-[#C7DFA3] rounded-full group-hover:bg-[#89B9E6] transition-colors" />
+
+            <span className="text-xs font-semibold text-[#31465A]/55 uppercase group-hover:text-[#31465A] transition-colors tracking-widest">
               Moon&apos;s Admin Access
             </span>
           </div>
@@ -250,7 +286,10 @@ function MainApp() {
         onClose={() => setIsAddEditModalOpen(false)}
         characterToEdit={characterToEdit}
         onSuccess={(savedChar) => {
-          if (selectedCharacter && selectedCharacter.id === savedChar.id) {
+          if (
+            selectedCharacter &&
+            selectedCharacter.id === savedChar.id
+          ) {
             setSelectedCharacter(savedChar);
           }
         }}

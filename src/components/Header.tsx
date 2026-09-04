@@ -1,6 +1,13 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, LogOut, PlusCircle, Volume2, VolumeX, ShieldCheck } from 'lucide-react';
+import {
+  LogIn,
+  LogOut,
+  PlusCircle,
+  Volume2,
+  VolumeX,
+  ShieldCheck,
+} from 'lucide-react';
 import { playDreamyChime } from '../lib/utils';
 
 interface HeaderProps {
@@ -39,28 +46,27 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full bg-white/70 backdrop-blur-md border-b border-[#e1f5fe] shadow-xs transition-all">
+    <header className="sticky top-0 z-30 w-full bg-[#FFFDF7]/90 backdrop-blur-md border-b border-[#D9F0FF] shadow-sm transition-all">
       <div className="max-w-6xl mx-auto px-4 sm:px-8 h-20 flex items-center justify-between gap-3">
-        {/* Brand Logo & Name */}
-        <div 
-          className="flex items-center gap-3 cursor-pointer select-none group" 
+
+        {/* Moon Logo */}
+        <button
+          type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="group flex items-center justify-center cursor-pointer select-none"
+          aria-label="Về đầu trang"
+          title="Giấc Mộng Dưới Trăng"
         >
-          <div className="w-10 h-10 bg-[#ffe0b2] rounded-full flex items-center justify-center shadow-xs transition-transform group-hover:scale-105">
-            <span className="text-xl text-[#fb8c00]">☾</span>
-          </div>
-          <div>
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-[#4a5568] uppercase font-sans">
-              Giấc Mộng Dưới Trăng
-            </h1>
-            <span className="text-[11px] font-medium tracking-wider text-[#90a4ae] block">
-              Thế Giới Gamebook Tương Tác
+          <div className="w-11 h-11 rounded-full bg-[#D9F0FF] border border-[#89B9E6]/40 flex items-center justify-center shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:rotate-[-6deg] group-hover:shadow-md">
+            <span className="text-[23px] leading-none text-[#31465A] transition-transform duration-300 group-hover:scale-110">
+              ☾
             </span>
           </div>
-        </div>
+        </button>
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
+
           {/* Sound Toggle */}
           <button
             onClick={() => {
@@ -68,14 +74,22 @@ export const Header: React.FC<HeaderProps> = ({
               setSoundEnabled(next);
               if (next) playDreamyChime('sparkle');
             }}
-            title={soundEnabled ? 'Tắt âm thanh hiệu ứng' : 'Bật âm thanh huyền diệu'}
-            className="w-9 h-9 rounded-full bg-white/80 border border-[#e1f5fe] text-[#90a4ae] hover:text-[#ff8a65] hover:bg-white flex items-center justify-center transition-colors shadow-2xs"
+            title={
+              soundEnabled
+                ? 'Tắt âm thanh hiệu ứng'
+                : 'Bật âm thanh huyền diệu'
+            }
+            className="w-9 h-9 rounded-full bg-[#FFFDF7]/90 border border-[#D9F0FF] text-[#31465A] hover:text-[#89B9E6] hover:bg-[#D9F0FF]/50 flex items-center justify-center transition-all shadow-sm"
             aria-label="Sound Toggle"
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-[#ff8a65]" /> : <VolumeX className="w-4 h-4 text-[#b0bec5]" />}
+            {soundEnabled ? (
+              <Volume2 className="w-4 h-4 text-[#89B9E6]" />
+            ) : (
+              <VolumeX className="w-4 h-4 text-[#31465A]/45" />
+            )}
           </button>
 
-          {/* Admin Area Quick Buttons (Visible ONLY to Admin) */}
+          {/* Admin Area Quick Buttons */}
           {isAdmin && (
             <div className="flex items-center gap-2">
               <button
@@ -83,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
                   if (soundEnabled) playDreamyChime('sparkle');
                   onOpenAddCharacter();
                 }}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#fce4ec] text-[#880e4f] text-xs font-semibold shadow-xs hover:shadow-md hover:bg-[#f8bbd0] transition-all cursor-pointer"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#C7DFA3]/55 border border-[#C7DFA3] text-[#31465A] text-xs font-semibold shadow-sm hover:shadow-md hover:bg-[#C7DFA3]/80 transition-all cursor-pointer"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>＋ Thêm Nhân Vật</span>
@@ -94,9 +108,9 @@ export const Header: React.FC<HeaderProps> = ({
                   if (soundEnabled) playDreamyChime('open');
                   onOpenAdmin();
                 }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#fff3e0] border border-[#ffe0b2] text-[#e65100] text-xs font-semibold hover:bg-[#ffe0b2] transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#D9F0FF] border border-[#89B9E6]/50 text-[#31465A] text-xs font-semibold hover:bg-[#89B9E6]/25 transition-all cursor-pointer shadow-sm"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#fb8c00]" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#31465A]" />
                 <span className="hidden md:inline">Khu Vực Của Moon</span>
                 <span className="md:hidden">Moon</span>
               </button>
@@ -111,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({
                   if (soundEnabled) playDreamyChime('click');
                   onOpenProfile();
                 }}
-                className="flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-white/80 border border-[#e1f5fe] hover:border-[#ffe0b2] hover:bg-[#fff9c4]/30 transition-all shadow-2xs cursor-pointer"
+                className="flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full bg-[#FFFDF7]/90 border border-[#D9F0FF] hover:border-[#89B9E6]/60 hover:bg-[#D9F0FF]/35 transition-all shadow-sm cursor-pointer"
                 title="Hồ sơ người dùng & Biệt danh"
               >
                 {profile?.photoURL || user.photoURL ? (
@@ -119,14 +133,17 @@ export const Header: React.FC<HeaderProps> = ({
                     src={profile?.photoURL || user.photoURL || ''}
                     alt="Avatar"
                     referrerPolicy="no-referrer"
-                    className="w-7 h-7 rounded-full object-cover border border-[#ffe0b2]"
+                    className="w-7 h-7 rounded-full object-cover border border-[#89B9E6]/60"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-[#ffe0b2] text-[#e65100] flex items-center justify-center text-xs font-bold">
-                    {profile?.nickname?.charAt(0) || user.displayName?.charAt(0) || '☾'}
+                  <div className="w-7 h-7 rounded-full bg-[#C7DFA3] text-[#31465A] flex items-center justify-center text-xs font-bold">
+                    {profile?.nickname?.charAt(0) ||
+                      user.displayName?.charAt(0) ||
+                      '☾'}
                   </div>
                 )}
-                <span className="text-xs font-semibold text-[#4a5568] max-w-[100px] truncate hidden sm:inline">
+
+                <span className="text-xs font-semibold text-[#31465A] max-w-[100px] truncate hidden sm:inline">
                   {profile?.nickname || user.displayName || 'Bảo bối'}
                 </span>
               </button>
@@ -134,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 onClick={handleLogout}
                 title="Đăng xuất"
-                className="w-9 h-9 rounded-full bg-white/80 border border-[#e1f5fe] text-[#90a4ae] hover:text-[#ff8a65] hover:bg-[#fff3e0] flex items-center justify-center transition-colors shadow-2xs"
+                className="w-9 h-9 rounded-full bg-[#FFFDF7]/90 border border-[#D9F0FF] text-[#31465A]/70 hover:text-[#31465A] hover:bg-[#D9F0FF]/55 flex items-center justify-center transition-all shadow-sm"
                 aria-label="Đăng xuất"
               >
                 <LogOut className="w-4 h-4" />
@@ -144,13 +161,14 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 onClick={handleLogin}
-                className="text-sm font-medium text-[#5d6d7e] hover:text-[#ff8a65] transition-colors cursor-pointer hidden sm:inline"
+                className="text-sm font-medium text-[#31465A]/80 hover:text-[#89B9E6] transition-colors cursor-pointer hidden sm:inline"
               >
                 Đăng nhập
               </button>
+
               <button
                 onClick={handleLogin}
-                className="inline-flex items-center gap-1.5 bg-[#fce4ec] px-5 py-2 rounded-full text-xs sm:text-sm font-semibold text-[#880e4f] shadow-xs hover:shadow-md hover:bg-[#f8bbd0] transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 bg-[#C7DFA3] px-5 py-2 rounded-full text-xs sm:text-sm font-semibold text-[#31465A] shadow-sm hover:shadow-md hover:bg-[#C7DFA3]/80 transition-all cursor-pointer"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 <span>Đăng nhập Google</span>

@@ -1,7 +1,25 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Character } from '../types';
-import { Sparkles, Edit3, Trash2, ArrowUpRight, BookOpen, MessageCircle } from 'lucide-react';
+import {
+  Sparkles,
+  Edit3,
+  Trash2,
+  ArrowUpRight,
+  BookOpen,
+  MessageCircle,
+  Heart,
+} from 'lucide-react';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+} from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from '../context/AuthContext';
 
 interface CharacterCardProps {
   character: Character;
@@ -18,23 +36,116 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
   onDelete,
   isAdmin,
 }) => {
+  const { user, login } = useAuth();
+
+  const [likesCount, setLikesCount] = React.useState(0);
+  const [isLiked, setIsLiked] = React.useState(false);
+  const [isLiking, setIsLiking] = React.useState(false);
+
+  React.useEffect(() => {
+    const likesRef = collection(
+      db,
+      'characters',
+      character.id,
+      'likes'
+    );
+
+    const unsubscribe = onSnapshot(
+      likesRef,
+      (snapshot) => {
+        setLikesCount(snapshot.size);
+
+        setIsLiked(
+          user
+            ? snapshot.docs.some(
+                (likeDoc) => likeDoc.id === user.uid
+              )
+            : false
+        );
+      },
+      (error) => {
+        console.error('Likes snapshot error:', error);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [character.id, user]);
+
+  const handleLike = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.stopPropagation();
+
+    if (!user) {
+      await login();
+      return;
+    }
+
+    if (isLiking) return;
+
+    setIsLiking(true);
+
+    const likeRef = doc(
+      db,
+      'characters',
+      character.id,
+      'likes',
+      user.uid
+    );
+
+    try {
+      if (isLiked) {
+        await deleteDoc(likeRef);
+      } else {
+        await setDoc(likeRef, {
+          userId: user.uid,
+          createdAt: serverTimestamp(),
+        });
+      }
+    } catch (error) {
+      console.error('Like error:', error);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
   const hashtagsList = character.hashtags
-    ? character.hashtags.split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean)
+    ? character.hashtags
+        .split(',')
+        .map((tag) => tag.trim().replace(/^#/, ''))
+        .filter(Boolean)
     : [];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3 }}
-      className="group relative flex flex-col h-full bg-white/80 backdrop-blur-md rounded-[32px] border border-[#e1f5fe] shadow-md hover:shadow-lg hover:border-[#ffe0b2] transition-all overflow-hidden"
+      exit={{ opacity: 0, scale: 0.96 }}
+      whileHover={{ y: -6 }}
+      transition={{ duration: 0.35 }}
+      className="
+        group relative flex flex-col h-full
+        overflow-hidden
+        rounded-[28px]
+        border border-[#D9F0FF]
+        bg-[#FFFDF7]
+        shadow-[0_10px_30px_rgba(49,70,90,0.08)]
+        transition-all duration-300
+        hover:border-[#89B9E6]
+        hover:shadow-[0_16px_38px_rgba(49,70,90,0.14)]
+      "
     >
-      {/* Top Media Container */}
-      <div 
+      {/* =========================
+          IMAGE
+      ========================== */}
+      <div
         onClick={() => onSelect(character)}
-        className="relative w-full aspect-4/3 overflow-hidden cursor-pointer bg-gradient-to-br from-[#e0f4ff]/50 via-[#fcf3ff]/50 to-[#fffef0]/50"
+        className="
+          relative w-full aspect-[4/5]
+          overflow-hidden
+          cursor-pointer
+          bg-[#D9F0FF]
+        "
       >
         {character.image ? (
           <img
@@ -42,95 +153,299 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
             alt={character.name}
             loading="lazy"
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+            className="
+              w-full h-full
+              object-cover object-center
+              transition-transform duration-700
+              group-hover:scale-[1.045]
+            "
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-[#b0bec5]">
-            <span className="text-4xl mb-2 text-[#fb8c00]">☾</span>
-            <span className="text-xs font-semibold text-[#90a4ae]">Giấc Mộng Dưới Trăng</span>
+          <div
+            className="
+              w-full h-full
+              flex flex-col items-center justify-center
+              bg-gradient-to-br
+              from-[#D9F0FF]
+              via-[#FFFDF7]
+              to-[#C7DFA3]
+            "
+          >
+            <span className="mb-3 text-5xl text-[#31465A]">
+              ☾
+            </span>
+
+            <span className="text-[11px] font-semibold tracking-[0.12em] text-[#31465A]/70">
+              GIẤC MỘNG DƯỚI TRĂNG
+            </span>
           </div>
         )}
 
-        {/* Soft overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+        {/* Image overlay */}
+        <div
+          className="
+            absolute inset-0
+            bg-gradient-to-t
+            from-[#31465A]/45
+            via-transparent
+            to-[#31465A]/5
+            opacity-80
+            transition-opacity duration-300
+            group-hover:opacity-60
+          "
+        />
 
-        {/* Explore Pill Button */}
-        <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-[#4a5568] text-[11px] font-bold flex items-center gap-1 shadow-xs group-hover:bg-[#ffe0b2] group-hover:text-[#880e4f] transition-colors">
-          <BookOpen className="w-3 h-3" />
+        {/* =========================
+            LIKE
+        ========================== */}
+        <button
+          type="button"
+          onClick={handleLike}
+          disabled={isLiking}
+          aria-label={
+            isLiked
+              ? 'Bỏ thích nhân vật'
+              : 'Thích nhân vật'
+          }
+          className="
+            absolute bottom-3 left-3 z-10
+            flex items-center gap-1.5
+            rounded-full
+            border border-white/70
+            bg-[#FFFDF7]/95
+            px-3 py-1.5
+            text-[#31465A]
+            shadow-sm
+            backdrop-blur-sm
+            transition-all duration-200
+            hover:bg-[#D9F0FF]
+            hover:scale-[1.03]
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
+        >
+          <Heart
+            className={`
+              h-3.5 w-3.5
+              transition-all duration-200
+              ${
+                isLiked
+                  ? 'fill-[#31465A] text-[#31465A] scale-110'
+                  : 'text-[#31465A]'
+              }
+            `}
+          />
+
+          <span className="text-[11px] font-bold tracking-wide">
+            {likesCount}
+          </span>
+        </button>
+
+        {/* =========================
+            EXPLORE
+        ========================== */}
+        <button
+          type="button"
+          onClick={() => onSelect(character)}
+          className="
+            absolute bottom-3 right-3 z-10
+            flex items-center gap-1.5
+            rounded-full
+            border border-white/70
+            bg-[#FFFDF7]/95
+            px-3 py-1.5
+            text-[11px]
+            font-bold
+            tracking-wide
+            text-[#31465A]
+            shadow-sm
+            backdrop-blur-sm
+            transition-all duration-200
+            hover:bg-[#C7DFA3]
+            hover:scale-[1.03]
+          "
+        >
+          <BookOpen className="h-3 w-3" />
+
           <span>Khám phá</span>
-          <ArrowUpRight className="w-3 h-3" />
-        </div>
 
-        {/* Admin Actions */}
+          <ArrowUpRight className="h-3 w-3" />
+        </button>
+
+        {/* =========================
+            ADMIN ACTIONS
+        ========================== */}
         {isAdmin && (
-          <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+          <div className="absolute right-3 top-3 z-10 flex items-center gap-1.5">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
                 onEdit?.(character);
               }}
               title="Chỉnh sửa nhân vật"
-              className="p-2 rounded-full bg-white/90 backdrop-blur-sm text-[#5d6d7e] hover:bg-[#ffe0b2] hover:text-[#e65100] transition-all shadow-xs"
+              className="
+                rounded-full
+                border border-white/70
+                bg-[#FFFDF7]/95
+                p-2
+                text-[#31465A]
+                shadow-sm
+                backdrop-blur-sm
+                transition-all
+                hover:bg-[#C7DFA3]
+                hover:scale-105
+              "
             >
-              <Edit3 className="w-3.5 h-3.5" />
+              <Edit3 className="h-3.5 w-3.5" />
             </button>
+
             <button
-              onClick={(e) => {
-                e.stopPropagation();
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
                 onDelete?.(character);
               }}
               title="Xóa nhân vật"
-              className="p-2 rounded-full bg-white/90 backdrop-blur-sm text-rose-600 hover:bg-rose-500 hover:text-white transition-all shadow-xs"
+              className="
+                rounded-full
+                border border-white/70
+                bg-[#FFFDF7]/95
+                p-2
+                text-[#31465A]
+                shadow-sm
+                backdrop-blur-sm
+                transition-all
+                hover:bg-[#31465A]
+                hover:text-[#FFFDF7]
+                hover:scale-105
+              "
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           </div>
         )}
       </div>
 
-      {/* Body Content */}
-      <div 
+      {/* =========================
+          CARD BODY
+      ========================== */}
+      <div
         onClick={() => onSelect(character)}
-        className="flex-1 p-5 sm:p-6 flex flex-col justify-between cursor-pointer select-none"
+        className="
+          flex flex-1
+          cursor-pointer
+          select-none
+          flex-col
+          justify-between
+          p-5
+        "
       >
         <div>
-          {/* Character Name */}
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#ffb74d] shrink-0" />
-            <h3 className="text-base sm:text-lg font-bold text-[#4a5568] group-hover:text-[#ff8a65] transition-colors line-clamp-1">
+          {/* Character name */}
+          <div className="mb-2 flex items-start gap-2">
+            <div
+              className="
+                mt-0.5 flex h-6 w-6
+                shrink-0 items-center justify-center
+                rounded-full
+                bg-[#D9F0FF]
+                text-[#31465A]
+              "
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+            </div>
+
+            <h3
+              className="
+                line-clamp-2
+                text-[15px]
+                font-bold
+                leading-snug
+                tracking-wide
+                text-[#31465A]
+                transition-colors duration-200
+                group-hover:text-[#89B9E6]
+              "
+            >
               {character.name}
             </h3>
           </div>
 
           {/* Slogan */}
           {character.slogan && (
-            <p className="text-xs sm:text-sm italic font-serif text-[#90a4ae] line-clamp-2 mb-3">
+            <p
+              className="
+                mb-4
+                line-clamp-3
+                text-xs
+                leading-relaxed
+                italic
+                text-[#31465A]/65
+              "
+            >
               “{character.slogan}”
             </p>
           )}
         </div>
 
-        {/* Hashtags & Footer */}
-        <div className="mt-2 pt-3 border-t border-[#e1f5fe]">
+        {/* =========================
+            HASHTAGS / FOOTER
+        ========================== */}
+        <div
+          className="
+            mt-4
+            border-t border-[#D9F0FF]
+            pt-3.5
+          "
+        >
           {hashtagsList.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {hashtagsList.slice(0, 3).map((tag, idx) => (
+            <div className="flex flex-wrap gap-x-2 gap-y-1.5">
+              {hashtagsList.slice(0, 3).map((tag, index) => (
                 <span
-                  key={idx}
-                  className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-[#fce4ec]/70 text-[#880e4f] border border-[#f8bbd0]/40"
+                  key={`${tag}-${index}`}
+                  className="
+                    rounded-full
+                    border border-[#C7DFA3]
+                    bg-[#C7DFA3]/45
+                    px-2.5 py-1
+                    text-[10px]
+                    font-semibold
+                    tracking-wide
+                    text-[#31465A]
+                    transition-colors
+                    group-hover:bg-[#D9F0FF]
+                    group-hover:border-[#89B9E6]/50
+                  "
                 >
                   #{tag}
                 </span>
               ))}
+
               {hashtagsList.length > 3 && (
-                <span className="text-[10px] text-[#b0bec5] self-center">
+                <span
+                  className="
+                    self-center
+                    text-[10px]
+                    font-semibold
+                    text-[#31465A]/45
+                  "
+                >
                   +{hashtagsList.length - 3}
                 </span>
               )}
             </div>
           ) : (
-            <span className="text-[11px] text-[#b0bec5] flex items-center gap-1">
-              <MessageCircle className="w-3 h-3 text-[#f48fb1]" />
+            <span
+              className="
+                flex items-center gap-1.5
+                text-[10px]
+                font-medium
+                tracking-wide
+                text-[#31465A]/50
+              "
+            >
+              <MessageCircle className="h-3 w-3 text-[#89B9E6]" />
               Chạm để đọc cốt truyện
             </span>
           )}
