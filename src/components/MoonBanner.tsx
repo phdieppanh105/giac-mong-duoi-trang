@@ -39,7 +39,7 @@ export const MoonBanner: React.FC = () => {
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#D9F0FF]/75 backdrop-blur-md border border-[#89B9E6]/35 shadow-sm text-[#31465A] text-xs font-semibold tracking-wide">
           <Moon className="w-3.5 h-3.5 text-[#31465A] animate-pulse" />
 
-          <span>☾ GIẤC MỘNG DƯỚI TRĂNG ☁︎</span>
+          <span> GIẤC MỘNG DƯỚI TRĂNG </span>
 
           <Cloud className="w-3.5 h-3.5 text-[#89B9E6]" />
         </div>
