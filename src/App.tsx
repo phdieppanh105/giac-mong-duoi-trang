@@ -15,6 +15,7 @@ import { AdminZoneModal } from './components/AdminZoneModal';
 import { DreamyBackground } from './components/DreamyBackground';
 import { playDreamyChime } from './lib/utils';
 import { Shield, PlusCircle } from 'lucide-react';
+import { LoadingScreen } from './components/LoadingScreen';
 
 function MainApp() {
   const { isAdmin, user, login } = useAuth();
@@ -38,6 +39,7 @@ function MainApp() {
   // Real-time Firestore sync of characters
   useEffect(() => {
     setLoading(true);
+
     const charCollection = collection(db, 'characters');
     const q = query(charCollection);
 
@@ -47,7 +49,10 @@ function MainApp() {
         const list: Character[] = [];
 
         snapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as Character);
+          list.push({
+            id: docSnap.id,
+            ...docSnap.data(),
+          } as Character);
         });
 
         // Sort newest first
@@ -84,7 +89,9 @@ function MainApp() {
 
   // Update URL and Title when selected character changes
   const handleSelectCharacter = (character: Character) => {
-    if (soundEnabled) playDreamyChime('open');
+    if (soundEnabled) {
+      playDreamyChime('open');
+    }
 
     setSelectedCharacter(character);
     document.title = `${character.name} | Giấc Mộng Dưới Trăng`;
@@ -95,7 +102,9 @@ function MainApp() {
   };
 
   const handleCloseCharacterDetail = () => {
-    if (soundEnabled) playDreamyChime('click');
+    if (soundEnabled) {
+      playDreamyChime('click');
+    }
 
     setSelectedCharacter(null);
     document.title = 'GIẤC MỘNG DƯỚI TRĂNG';
@@ -130,9 +139,13 @@ function MainApp() {
     setDeleting(true);
 
     try {
-      if (soundEnabled) playDreamyChime('click');
+      if (soundEnabled) {
+        playDreamyChime('click');
+      }
 
-      await deleteDoc(doc(db, 'characters', characterToDelete.id));
+      await deleteDoc(
+        doc(db, 'characters', characterToDelete.id)
+      );
 
       if (selectedCharacter?.id === characterToDelete.id) {
         handleCloseCharacterDetail();
@@ -174,6 +187,7 @@ function MainApp() {
 
   return (
     <div className="min-h-screen flex flex-col relative bg-[#FFFDF7] text-[#31465A] font-sans selection:bg-[#D9F0FF] selection:text-[#31465A]">
+
       {/* Dreamy ambient background with moonlight glow & stars */}
       <DreamyBackground />
 
@@ -190,6 +204,7 @@ function MainApp() {
       {isAdmin && (
         <div className="w-full bg-[#D9F0FF]/70 backdrop-blur-sm border-b border-[#89B9E6]/30 py-2.5 px-4 z-10">
           <div className="max-w-6xl mx-auto flex items-center justify-between text-xs flex-wrap gap-2">
+
             <div className="flex items-center gap-2 text-[#31465A] font-semibold">
               <Shield className="w-3.5 h-3.5 text-[#89B9E6]" />
 
@@ -210,12 +225,14 @@ function MainApp() {
                 <span>Thêm Nhân Vật Mới</span>
               </button>
             </div>
+
           </div>
         </div>
       )}
 
       {/* Main Content Area */}
       <main className="flex-1 z-10 pb-12">
+
         {/* Poetic Greeting & Slogan Banner */}
         <MoonBanner />
 
@@ -240,10 +257,12 @@ function MainApp() {
           onAddNew={handleOpenAddCharacter}
           isAdmin={isAdmin}
         />
+
       </main>
 
       {/* Blue Matcha Footer */}
       <footer className="h-16 flex items-center justify-between px-6 sm:px-12 z-10 border-t border-[#89B9E6]/25 bg-[#D9F0FF]/45 backdrop-blur-md">
+
         <div className="text-xs text-[#31465A]/55 tracking-widest uppercase font-medium">
           © 2024 GIẤC MỘNG DƯỚI TRĂNG
         </div>
@@ -266,6 +285,7 @@ function MainApp() {
             </span>
           </div>
         </div>
+
       </footer>
 
       {/* Character Detail Modal */}
@@ -325,14 +345,25 @@ function MainApp() {
         onDelete={handleOpenDeleteModal}
         onView={handleSelectCharacter}
       />
+
     </div>
   );
 }
 
 export default function App() {
+  const [showLoading, setShowLoading] = useState(true);
+
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+
+      {showLoading && (
+        <LoadingScreen
+          onComplete={() => setShowLoading(false)}
+        />
+      )}
+    </>
   );
 }
