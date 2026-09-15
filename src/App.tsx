@@ -15,6 +15,7 @@ import { AdminZoneModal } from './components/AdminZoneModal';
 import { DreamyBackground } from './components/DreamyBackground';
 import { playDreamyChime } from './lib/utils';
 import { Shield, PlusCircle } from 'lucide-react';
+import { LoadingScreen } from './components/LoadingScreen';
 
 function MainApp() {
   const { isAdmin, user, login } = useAuth();
@@ -23,6 +24,7 @@ function MainApp() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [showLoading, setShowLoading] = React.useState(true);
 
   // Modals & Active Views
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
@@ -334,5 +336,10 @@ export default function App() {
     <AuthProvider>
       <MainApp />
     </AuthProvider>
+    {showLoading && (
+  <LoadingScreen
+    onComplete={() => setShowLoading(false)}
+  />
+)}
   );
 }
