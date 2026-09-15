@@ -1,0 +1,420 @@
+import React, { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
+
+interface LoadingScreenProps {
+  onComplete?: () => void;
+}
+
+export const LoadingScreen: React.FC<LoadingScreenProps> = ({
+  onComplete,
+}) => {
+  const [progress, setProgress] = useState(0);
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  useEffect(() => {
+    const duration = 6500;
+    const start = performance.now();
+    let frameId: number;
+
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const ratio = Math.min(elapsed / duration, 1);
+
+      // Chạy từ 0 → 100 mượt, không đứng im
+      const eased = 1 - Math.pow(1 - ratio, 1.35);
+      const value = Math.floor(eased * 100);
+
+      setProgress(value);
+
+      if (ratio < 1) {
+        frameId = requestAnimationFrame(animate);
+      } else {
+        setProgress(100);
+
+        setTimeout(() => {
+          setIsLeaving(true);
+
+          setTimeout(() => {
+            onComplete?.();
+          }, 700);
+        }, 250);
+      }
+    };
+
+    frameId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [onComplete]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: isLeaving ? 0 : 1 }}
+      transition={{ duration: 0.7, ease: 'easeInOut' }}
+      className="
+        fixed inset-0 z-[9999]
+        flex items-center justify-center
+        overflow-hidden
+        bg-[#31465A]
+      "
+    >
+      {/* =========================
+          BACKGROUND GLOW
+      ========================== */}
+      <div
+        className="
+          absolute left-1/2 top-1/2
+          h-[430px] w-[430px]
+          -translate-x-1/2 -translate-y-1/2
+          rounded-full
+          bg-[#D9F0FF]/10
+          blur-[80px]
+        "
+      />
+
+      <div
+        className="
+          absolute left-1/2 top-1/2
+          h-[300px] w-[300px]
+          -translate-x-1/2 -translate-y-1/2
+          rounded-full
+          bg-[#FFFDF7]/10
+          blur-[65px]
+        "
+      />
+
+      {/* =========================
+          STARS
+      ========================== */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[
+          ['12%', '20%', '-0.3s'],
+          ['23%', '68%', '-1.1s'],
+          ['79%', '25%', '-0.7s'],
+          ['88%', '62%', '-1.7s'],
+          ['68%', '13%', '-0.1s'],
+          ['35%', '16%', '-1.5s'],
+          ['17%', '43%', '-2s'],
+          ['83%', '45%', '-0.9s'],
+          ['57%', '9%', '-1.8s'],
+          ['7%', '78%', '-0.5s'],
+        ].map(([left, top, delay], index) => (
+          <motion.span
+            key={index}
+            className="
+              absolute
+              h-[3px] w-[3px]
+              rounded-full
+              bg-[#FFFDF7]
+              shadow-[0_0_10px_rgba(255,253,247,0.9)]
+            "
+            style={{
+              left,
+              top,
+            }}
+            animate={{
+              opacity: [0.2, 1, 0.2],
+              scale: [0.7, 1.5, 0.7],
+            }}
+            transition={{
+              duration: 2.4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: parseFloat(delay),
+            }}
+          />
+        ))}
+      </div>
+
+      {/* =========================
+          SOFT CLOUDS
+      ========================== */}
+      <motion.div
+        className="
+          absolute
+          -left-24 bottom-[12%]
+          h-20 w-[310px]
+          rounded-full
+          bg-[#D9F0FF]/[0.055]
+          blur-[11px]
+        "
+        animate={{ x: [-20, 45, -20] }}
+        transition={{
+          duration: 14,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      />
+
+      <motion.div
+        className="
+          absolute
+          -right-28 top-[17%]
+          h-20 w-[350px]
+          rounded-full
+          bg-[#D9F0FF]/[0.055]
+          blur-[11px]
+        "
+        animate={{ x: [30, -35, 30] }}
+        transition={{
+          duration: 16,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: -5,
+        }}
+      />
+
+      {/* =========================
+          CENTRAL SCENE
+      ========================== */}
+      <div
+        className="
+          relative
+          flex h-full w-full
+          items-center justify-center
+        "
+      >
+        {/* =========================
+            MOON
+        ========================== */}
+        <motion.div
+          className="
+            absolute
+            left-1/2 top-1/2
+            h-[min(82vw,430px)]
+            w-[min(82vw,430px)]
+            -translate-x-1/2
+            -translate-y-1/2
+          "
+          animate={{
+            y: [0, -7, 0],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        >
+          {/* Moon glow */}
+          <motion.div
+            className="
+              absolute
+              -inset-12
+              rounded-full
+              bg-[#FFFDF7]/15
+              blur-[35px]
+            "
+            animate={{
+              scale: [0.94, 1.07, 0.94],
+              opacity: [0.65, 1, 0.65],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+
+          {/* Moon */}
+          <div
+            className="
+              absolute inset-0
+              overflow-hidden
+              rounded-full
+              bg-[#FFFDF7]
+              shadow-[0_0_24px_rgba(255,253,247,0.8),0_0_90px_rgba(217,240,255,0.42)]
+            "
+          >
+            {/* Moon craters */}
+            <div
+              className="
+                absolute
+                left-[22%] top-[18%]
+                h-[23%] w-[23%]
+                rounded-full
+                bg-[#C7DFA3]/25
+                shadow-[44%_10%_0_rgba(199,223,163,0.17),22%_108%_0_rgba(199,223,163,0.18),98%_118%_0_rgba(199,223,163,0.12)]
+              "
+            />
+
+            <div
+              className="
+                absolute
+                left-[56%] top-[23%]
+                h-[13%] w-[13%]
+                rounded-full
+                bg-[#C7DFA3]/25
+                shadow-[-250%_360%_0_rgba(199,223,163,0.13),120%_260%_0_rgba(199,223,163,0.12)]
+              "
+            />
+
+            {/* Dark veil so text sits inside the moon */}
+            <div
+              className="
+                absolute inset-0
+                rounded-full
+                bg-gradient-to-b
+                from-[#31465A]/[0.03]
+                via-[#31465A]/[0.08]
+                to-[#31465A]/[0.18]
+              "
+            />
+          </div>
+        </motion.div>
+
+        {/* =========================
+            TEXT + LOADING
+        ========================== */}
+        <div
+          className="
+            relative z-20
+            flex w-[88%] max-w-[590px]
+            flex-col items-center
+            text-center
+          "
+        >
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="
+              mb-3
+              text-[10px] sm:text-[13px]
+              font-bold
+              tracking-[0.25em]
+              text-[#31465A]
+              [text-shadow:0_2px_3px_rgba(255,253,247,0.95),0_0_14px_rgba(255,253,247,0.75)]
+            "
+          >
+            ☾ ｡･ﾟ･｡ DREAMWORLD ｡･ﾟ･｡ ☁︎
+          </motion.p>
+
+          <motion.h1
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.15 }}
+            className="
+              max-w-full
+              text-[27px] leading-[1.12]
+              sm:text-[42px]
+              font-bold
+              tracking-[0.08em]
+              text-[#31465A]
+              [text-shadow:0_2px_3px_rgba(255,253,247,0.95),0_0_16px_rgba(255,253,247,0.75)]
+            "
+          >
+            GIẤC MỘNG DƯỚI TRĂNG
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.45 }}
+            className="
+              mb-5 mt-4
+              text-[12px] sm:text-[16px]
+              font-bold
+              tracking-[0.1em]
+              text-[#31465A]
+              [text-shadow:0_2px_3px_rgba(255,253,247,0.95),0_0_12px_rgba(255,253,247,0.7)]
+            "
+          >
+            ⋆｡ ﾟ☁︎｡ welcome ｡ ﾟ☾ ﾟ｡ ⋆
+          </motion.p>
+
+          <div
+            className="
+              mb-5
+              text-[13px]
+              font-bold
+              tracking-[0.1em]
+              text-[#31465A]
+              [text-shadow:0_2px_4px_rgba(255,253,247,0.95)]
+            "
+          >
+            ⊹•┈┈౨ৎ┈┈•⊹
+          </div>
+
+          <motion.p
+            animate={{ opacity: [0.65, 1, 0.65] }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+            className="
+              mb-3
+              text-[10px] sm:text-[13px]
+              font-bold
+              tracking-[0.23em]
+              text-[#31465A]
+              [text-shadow:0_2px_4px_rgba(255,253,247,0.95),0_0_14px_rgba(255,253,247,0.65)]
+            "
+          >
+            ĐANG MỞ GIẤC MỘNG...
+          </motion.p>
+
+          {/* =========================
+              LOADING BAR
+          ========================== */}
+          <div
+            className="
+              h-[6px] w-[75vw] max-w-[390px]
+              overflow-hidden
+              rounded-full
+              bg-[#31465A]/20
+              shadow-[inset_0_1px_3px_rgba(49,70,90,0.18),0_1px_7px_rgba(255,253,247,0.5)]
+            "
+          >
+            <motion.div
+              className="
+                h-full
+                rounded-full
+                bg-gradient-to-r
+                from-[#C7DFA3]
+                via-[#D9F0FF]
+                to-[#89B9E6]
+                shadow-[0_0_9px_rgba(137,185,230,0.75)]
+              "
+              style={{
+                width: `${progress}%`,
+              }}
+            />
+          </div>
+
+          <motion.p
+            key={progress}
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
+            className="
+              mt-2
+              min-h-[18px]
+              text-[11px]
+              font-bold
+              tracking-[0.18em]
+              text-[#31465A]
+              [text-shadow:0_2px_3px_rgba(255,253,247,0.9)]
+            "
+          >
+            {progress}%
+          </motion.p>
+        </div>
+      </div>
+
+      {/* =========================
+          FOOTER
+      ========================== */}
+      <div
+        className="
+          absolute bottom-5 left-0 right-0
+          text-center
+          text-[9px] sm:text-[10px]
+          tracking-[0.17em]
+          text-[#D9F0FF]/45
+        "
+      >
+        ✦ một thế giới đang thức giấc ✦
+      </div>
+    </motion.div>
+  );
+};
